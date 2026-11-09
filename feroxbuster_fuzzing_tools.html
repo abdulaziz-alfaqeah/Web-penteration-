@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modern Web Fuzzing Arsenal · 2026 Edition</title>
+<style>
+  :root{
+    --bg:#0a0e14; --bg-2:#111721; --bg-3:#1a2230; --bg-4:#232d3f;
+    --border:#2a3548; --border-hi:#3d4b63;
+    --fg:#d4dae3; --fg-dim:#7a8699;
+    --accent:#4dabf7; --accent-2:#69db7c; --accent-3:#b197fc;
+    --warn:#ffa94d; --danger:#ff6b6b; --pink:#f783ac; --cyan:#3bc9db;
+    --code-bg:#060a10; --radius:12px; --radius-sm:8px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Segoe UI','Tahoma',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--fg);line-height:1.75;font-size:15px;overflow-x:hidden}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-track{background:var(--bg-2)}
+  ::-webkit-scrollbar-thumb{background:var(--bg-4);border-radius:5px}
+  ::-webkit-scrollbar-thumb:hover{background:var(--border-hi)}
+  .app{display:flex;min-height:100vh}
+  .sidebar{width:290px;background:var(--bg-2);border-right:1px solid var(--border);padding:22px 0;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
+  .sidebar::-webkit-scrollbar{width:6px}
+  .logo{padding:0 22px 20px;border-bottom:1px solid var(--border);margin-bottom:16px}
+  .logo h1{font-size:1.15rem;color:#fff;letter-spacing:.3px;display:flex;align-items:center;gap:10px}
+  .logo h1 .badge-logo{background:linear-gradient(135deg,var(--accent),var(--accent-3));color:#fff;font-size:.65rem;padding:3px 8px;border-radius:20px;font-weight:700}
+  .logo p{color:var(--fg-dim);font-size:.78rem;margin-top:6px}
+  .nav-group{margin-bottom:8px}
+  .nav-group-title{color:var(--fg-dim);font-size:.7rem;text-transform:uppercase;letter-spacing:1.2px;padding:12px 22px 6px;font-weight:700}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 22px;color:var(--fg);text-decoration:none;font-size:.87rem;cursor:pointer;border-left:3px solid transparent;transition:all .15s;position:relative}
+  .nav-item:hover{background:var(--bg-3);color:var(--accent)}
+  .nav-item.active{background:var(--bg-3);color:var(--accent);border-left-color:var(--accent);font-weight:600}
+  .nav-item .ico{font-size:1rem;width:20px;text-align:center}
+  .nav-item .tag{margin-left:auto;font-size:.6rem;padding:2px 7px;border-radius:10px;background:var(--bg-4);color:var(--fg-dim);font-weight:700;letter-spacing:.4px}
+  .tag.hot{background:rgba(255,107,107,.15);color:var(--danger)}
+  .tag.new{background:rgba(105,219,124,.15);color:var(--accent-2)}
+  .content{flex:1;padding:36px 44px;max-width:1200px;overflow-x:hidden}
+  .hero{background:linear-gradient(135deg,#1c3a5e 0%,#2e1a4d 100%);border:1px solid var(--border);border-radius:var(--radius);padding:38px 36px;margin-bottom:34px;position:relative;overflow:hidden}
+  .hero::before{content:"";position:absolute;top:-60px;left:-60px;width:220px;height:220px;background:radial-gradient(circle,rgba(77,171,247,.25),transparent 70%);border-radius:50%}
+  .hero::after{content:"";position:absolute;bottom:-80px;right:-80px;width:260px;height:260px;background:radial-gradient(circle,rgba(177,151,252,.2),transparent 70%);border-radius:50%}
+  .hero h1{color:#fff;font-size:2rem;margin-bottom:10px;position:relative;z-index:2}
+  .hero p{color:#c4cddb;font-size:1rem;position:relative;z-index:2;max-width:800px}
+  .hero-stats{display:flex;gap:26px;margin-top:22px;position:relative;z-index:2;flex-wrap:wrap}
+  .stat{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);padding:12px 20px;border-radius:var(--radius-sm);backdrop-filter:blur(6px)}
+  .stat .n{font-size:1.35rem;color:#fff;font-weight:700;display:block}
+  .stat .l{font-size:.75rem;color:#a9b6c9;letter-spacing:.5px}
+  .section{margin-bottom:44px;scroll-margin-top:20px}
+  .section-header{display:flex;align-items:center;gap:14px;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+  .section-header .s-ico{width:44px;height:44px;background:var(--bg-3);border:1px solid var(--border-hi);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:1.35rem;flex-shrink:0}
+  .section-header h2{font-size:1.5rem;color:#fff;letter-spacing:.3px}
+  .section-header .sub{color:var(--fg-dim);font-size:.82rem;margin-top:3px}
+  .tool-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);padding:26px 28px;margin-bottom:24px}
+  .tool-head{display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px dashed var(--border);flex-wrap:wrap}
+  .tool-head h3{font-size:1.35rem;color:#fff;display:flex;align-items:center;gap:10px}
+  .tool-head h3 .ver{font-size:.7rem;color:var(--fg-dim);font-weight:400;background:var(--bg-3);padding:3px 9px;border-radius:10px;border:1px solid var(--border)}
+  .lang-badge{font-size:.72rem;padding:4px 11px;border-radius:20px;font-weight:700;letter-spacing:.4px;border:1px solid}
+  .lang-rust{color:#ffa94d;border-color:rgba(255,169,77,.35);background:rgba(255,169,77,.08)}
+  .lang-go{color:#3bc9db;border-color:rgba(59,201,219,.35);background:rgba(59,201,219,.08)}
+  .lang-py{color:#69db7c;border-color:rgba(105,219,124,.35);background:rgba(105,219,124,.08)}
+  .tool-desc{color:var(--fg-dim);font-size:.9rem;margin-bottom:20px;line-height:1.8}
+  .block{margin-bottom:22px}
+  .block-title{font-size:.95rem;color:var(--accent-2);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px;letter-spacing:.2px}
+  .block-title .num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:var(--accent-2);color:#0a0e14;font-size:.72rem;border-radius:6px;font-weight:800}
+  .block-desc{color:var(--fg-dim);font-size:.83rem;margin-bottom:10px;line-height:1.7}
+  pre{background:var(--code-bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px 14px 70px;overflow-x:auto;direction:ltr;text-align:left;font-family:'JetBrains Mono','Fira Code','Consolas','Monaco',monospace;font-size:.82rem;line-height:1.7;position:relative;margin-bottom:8px}
+  pre code{color:#e6edf3;white-space:pre;display:block}
+  .cmt{color:#5f6b7d;font-style:italic}
+  .flag{color:var(--warn)}
+  .val{color:var(--accent-2)}
+  .cmd{color:var(--accent);font-weight:600}
+  .str{color:#a5d6ff}
+  .kw{color:var(--accent-3)}
+  .danger-txt{color:var(--danger)}
+  .pipe{color:var(--pink);font-weight:700}
+  .copy-btn{position:absolute;top:10px;left:10px;background:var(--bg-3);border:1px solid var(--border);color:var(--fg-dim);font-size:.68rem;padding:5px 11px;border-radius:6px;cursor:pointer;transition:all .15s;direction:ltr;font-family:inherit;font-weight:600}
+  .copy-btn:hover{color:var(--accent-2);border-color:var(--accent-2)}
+  .copy-btn.done{color:var(--accent-2);border-color:var(--accent-2)}
+  .note{background:rgba(77,171,247,.06);border-left:3px solid var(--accent);padding:10px 14px;border-radius:6px;margin:10px 0;font-size:.83rem;color:var(--fg);line-height:1.75}
+  .note strong{color:var(--accent)}
+  .note.warn{background:rgba(255,169,77,.06);border-left-color:var(--warn)}
+  .note.warn strong{color:var(--warn)}
+  .note.danger{background:rgba(255,107,107,.06);border-left-color:var(--danger)}
+  .note.danger strong{color:var(--danger)}
+  .note.tip{background:rgba(105,219,124,.06);border-left-color:var(--accent-2)}
+  .note.tip strong{color:var(--accent-2)}
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:.83rem;background:var(--bg-3);border-radius:var(--radius-sm);overflow:hidden}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border)}
+  th{background:var(--bg-4);color:var(--accent-2);font-weight:700;font-size:.78rem;letter-spacing:.3px}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:rgba(77,171,247,.04)}
+  td code{color:var(--warn);font-family:'Consolas',monospace;background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.82rem}
+  .rate{color:#ffd43b;letter-spacing:1px}
+  .rate.g{color:var(--accent-2)}
+  .wl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:14px}
+  .wl-card{background:var(--bg-3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;transition:all .2s}
+  .wl-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.3)}
+  .wl-card h4{color:var(--accent);font-size:.95rem;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .wl-card .use{font-size:.78rem;color:var(--fg-dim);margin-bottom:10px;line-height:1.7}
+  .wl-card .path{background:var(--code-bg);padding:6px 10px;border-radius:6px;font-family:'Consolas',monospace;font-size:.72rem;color:var(--accent-2);direction:ltr;text-align:left;word-break:break-all;border:1px solid var(--border)}
+  .pipeline{position:relative;padding-left:34px}
+  .pipeline::before{content:"";position:absolute;left:11px;top:8px;bottom:8px;width:2px;background:linear-gradient(to bottom,var(--accent),var(--accent-3),transparent)}
+  .step{position:relative;margin-bottom:22px}
+  .step::before{content:attr(data-step);position:absolute;left:-34px;top:0;width:24px;height:24px;background:var(--accent);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;box-shadow:0 0 0 4px var(--bg)}
+  .step h4{color:#fff;font-size:1rem;margin-bottom:6px}
+  .step p{color:var(--fg-dim);font-size:.83rem;margin-bottom:10px}
+  footer{text-align:center;color:var(--fg-dim);padding:30px 10px;border-top:1px solid var(--border);margin-top:50px;font-size:.8rem;line-height:1.9}
+  footer strong{color:var(--danger)}
+  .menu-toggle{display:none;position:fixed;top:16px;left:16px;z-index:200;background:var(--bg-3);border:1px solid var(--border-hi);color:var(--fg);width:44px;height:44px;border-radius:10px;cursor:pointer;font-size:1.2rem}
+  @media(max-width:900px){
+    .menu-toggle{display:flex;align-items:center;justify-content:center}
+    .sidebar{position:fixed;left:0;top:0;transform:translateX(-100%);transition:transform .3s;z-index:150;box-shadow:10px 0 30px rgba(0,0,0,.5)}
+    .sidebar.open{transform:translateX(0)}
+    .content{padding:24px 18px}
+    .hero{padding:26px 22px}
+    .hero h1{font-size:1.4rem}
+    pre{font-size:.72rem;padding-left:16px;padding-top:36px}
+    .copy-btn{left:auto;right:10px}
+    .tool-card{padding:20px 16px}
+  }
+</style>
+</head>
+<body>
+
+<button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">
+      <h1>⚡ Fuzzing Arsenal <span class="badge-logo">2026</span></h1>
+      <p>The complete professional toolkit for modern discovery tools</p>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">Getting Started</div>
+      <a class="nav-item active" href="#overview"><span class="ico">🏠</span> Overview</a>
+      <a class="nav-item" href="#pipeline"><span class="ico">🔗</span> Recon Pipeline <span class="tag hot">HOT</span></a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">Fuzzing Tools</div>
+      <a class="nav-item" href="#feroxbuster"><span class="ico">🦀</span> Feroxbuster</a>
+      <a class="nav-item" href="#spray"><span class="ico">💦</span> Spray <span class="tag new">NEW</span></a>
+      <a class="nav-item" href="#ffuf"><span class="ico">🚀</span> FFUF</a>
+      <a class="nav-item" href="#gobuster"><span class="ico">🔍</span> Gobuster</a>
+      <a class="nav-item" href="#dirsearch"><span class="ico">📁</span> Dirsearch</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">Specialized Tools</div>
+      <a class="nav-item" href="#x8"><span class="ico">🎯</span> x8 <span class="tag new">NEW</span></a>
+      <a class="nav-item" href="#kiterunner"><span class="ico">🪁</span> Kiterunner</a>
+      <a class="nav-item" href="#fuzzuli"><span class="ico">💾</span> Fuzzuli</a>
+      <a class="nav-item" href="#katana"><span class="ico">🗡️</span> Katana</a>
+      <a class="nav-item" href="#nuclei"><span class="ico">☢️</span> Nuclei</a>
+      <a class="nav-item" href="#dalfox"><span class="ico">🦊</span> Dalfox</a>
+      <a class="nav-item" href="#httpx"><span class="ico">🌐</span> httpx</a>
+      <a class="nav-item" href="#subfinder"><span class="ico">🔎</span> Subfinder</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-title">Reference</div>
+      <a class="nav-item" href="#wordlists"><span class="ico">📚</span> Wordlists</a>
+      <a class="nav-item" href="#comparison"><span class="ico">📊</span> Comparison</a>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="hero">
+      <h1>⚡ Modern Web Fuzzing Arsenal</h1>
+      <p>The complete professional guide to the most powerful tools for path discovery, parameter mining, backup hunting, and vulnerability scanning — updated for 2026 with ready-to-run commands and advanced techniques.</p>
+      <div class="hero-stats">
+        <div class="stat"><span class="n">13</span><span class="l">Professional Tools</span></div>
+        <div class="stat"><span class="n">90+</span><span class="l">Ready Commands</span></div>
+        <div class="stat"><span class="n">15</span><span class="l">Popular Wordlists</span></div>
+        <div class="stat"><span class="n">2026</span><span class="l">Last Update</span></div>
+      </div>
+    </div>
+
+    <section class="section" id="overview">
+      <div class="section-header"><div class="s-ico">🏠</div><div><h2>Overview</h2><div class="sub">How to use this guide properly</div></div></div>
+      <div class="tool-card">
+        <p class="tool-desc">This guide is organized by category. Each tool has its own section covering:
+          <strong style="color:var(--accent-2)">Installation</strong> ·
+          <strong style="color:var(--accent-2)">Usage</strong> ·
+          <strong style="color:var(--accent-2)">Pro Commands</strong> ·
+          <strong style="color:var(--accent-2)">Option Tables</strong> ·
+          <strong style="color:var(--accent-2)">Pro Tips</strong>.
+        </p>
+        <div class="note danger"><strong>⚠️ Legal Notice:</strong> All commands here are for educational purposes and authorized penetration testing only. Using them against systems without written permission is a criminal offense.</div>
+        <div class="note tip"><strong>💡 Golden Rule:</strong> The tool is not what matters — the <em>methodology</em>, the <em>right wordlist</em>, and <em>smart filtering</em> are. FFUF with a great wordlist beats 10 tools with bad wordlists.</div>
+      </div>
+    </section>
+
+    <!-- Pipeline -->
+    <section class="section" id="pipeline">
+      <div class="section-header"><div class="s-ico">🔗</div><div><h2>Professional Recon Pipeline</h2><div class="sub">Integrated 8-step workflow</div></div></div>
+      <div class="tool-card">
+        <div class="pipeline">
+          <div class="step" data-step="1"><h4>Passive Subdomain Enumeration</h4><p>Use subfinder to collect subdomains without touching the target.</p><pre><button class="copy-btn">copy</button><code><span class="cmd">subfinder</span> <span class="flag">-d</span> <span class="str">target.com</span> <span class="flag">-all</span> <span class="flag">-silent</span> <span class="pipe">|</span> <span class="cmd">tee</span> subs.txt</code></pre></div>
+          <div class="step" data-step="2"><h4>Live Host Validation</h4><p>httpx verifies live hosts, status codes, tech stack, and titles.</p><pre><button class="copy-btn">copy</button><code><span class="cmd">cat</span> subs.txt <span class="pipe">|</span> <span class="cmd">httpx</span> <span class="flag">-silent</span> <span class="flag">-sc</span> <span class="flag">-title</span> <span class="flag">-tech-detect</span> <span class="flag">-o</span> live.txt</code></pre></div>
+          <div class="step" data-step="3"><h4>Smart Crawling</h4><p>Katana with headless browser + JS parsing to collect every URL.</p><pre><button class="copy-btn">copy</button><code><span class="cmd">katana</span> <span class="flag">-list</span> live.txt <span class="flag">-jc</span> <span class="flag">-kf</span> <span class="val">all</span> <span class="flag">-d</span> <span class="val">3</span> <span class="flag">-silent</span> <span class="flag">-o</span> urls.txt</code></pre></div>
+          <div class="step" data-step="4"><h4>Directory & File Discovery</h4><p>Feroxbuster with auto-recursion and sensitive extensions.</p><pre><button class="copy-btn">copy</button><code><span class="cmd">feroxbuster</span> <span class="flag">-u</span> <span class="str">https://target.com</span> \
+  <span class="flag">-w</span> <span class="str">raft-medium-directories.txt</span> \
+  <span class="flag">-x</span> <span class="val">php,html,json,bak,old,zip,sql</span> \
+  <span class="flag">--depth</span> <span class="val">3</span> <span class="flag">-k</span> <span class="flag">-o</span> dirs.txt</code></pre></div>
+          <div class="step" data-step="5"><h4>Hidden Parameter Discovery</h4><p>x8 hunts for parameters in GET, POST, and JSON bodies.</p><pre><button class="copy-btn">copy</button><code><span class="cmd">cat</span> urls.txt <span class="pipe">|</span> <span class="cmd">x8</span> <span class="flag">-w</span> <span class="str">params.txt</span> <span class="flag">--reflected-only</span> <span class="flag">-o</span> params.txt</code></pre></div>
+          <div class="step" data-step="6"><h4>Backup File Discovery</h4><p>Fuzzuli specializes in smart backup file detection.</p><pre><button class="copy-btn">copy</button><code><span class="cmd">fuzzuli</span> <span class="flag">-url</span> <span class="str">https://target.com</span> \
+  <span class="flag">-ext</span> <span class="val">zip,tar.gz,sql,rar,7z,bak</span> \
+  <span class="flag">-o</span> backups.txt</code></pre></div>
+          <div class="step" data-step="7"><h4>API Endpoint Discovery</h4><p>Kiterunner with API-focused wordlists.</p><pre><button class="copy-btn">copy</button><code><span class="cmd">kr</span> scan <span class="str">https://api.target.com</span> \
+  <span class="flag">-w</span> <span class="str">routes-large.kite</span> \
+  <span class="flag">-x</span> <span class="val">20</span> <span class="flag">-o</span> api.txt</code></pre></div>
+          <div class="step" data-step="8"><h4>Comprehensive Vulnerability Scanning</h4><p>Nuclei + Dalfox for the final sweep.</p><pre><button class="copy-btn">copy</button><code><span class="cmt"># CVEs + Exposures</span>
+<span class="cmd">cat</span> urls.txt <span class="pipe">|</span> <span class="cmd">nuclei</span> <span class="flag">-t</span> <span class="val">cves/,exposures/,misconfiguration/</span> \
+  <span class="flag">-severity</span> <span class="val">critical,high,medium</span> <span class="flag">-o</span> vulns.txt
+
+<span class="cmt"># XSS</span>
+<span class="cmd">cat</span> urls.txt <span class="pipe">|</span> <span class="cmd">dalfox</span> pipe <span class="flag">--blind</span> <span class="str">https://your.xsshunter.com</span></code></pre></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Feroxbuster -->
+    <section class="section" id="feroxbuster">
+      <div class="section-header"><div class="s-ico">🦀</div><div><h2>Feroxbuster</h2><div class="sub">Fastest auto-recursive fuzzer, written in Rust</div></div></div>
+      <div class="tool-card">
+        <div class="tool-head"><h3>Feroxbuster <span class="ver">v2.11+</span></h3><span class="lang-badge lang-rust">Rust</span><span class="lang-badge lang-go">Auto-Recursion</span></div>
+        <p class="tool-desc">A modern fuzzing tool combining Rust performance with smart auto-recursion. Discovers paths, extracts links from pages, and works with any wordlist.</p>
+        <div class="block"><div class="block-title"><span class="num">1</span> Installation</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmt"># Via Cargo (fastest)</span>
+cargo install feroxbuster
+
+<span class="cmt"># Via apt (Kali/Ubuntu)</span>
+sudo apt install feroxbuster
+
+<span class="cmt"># Official install script</span>
+curl -sL https://raw.githubusercontent.com/epi052/feroxbuster/main/install-nix.sh | bash</code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">2</span> Basic Usage</div><p class="block-desc">Basic scan with auto-recursion into discovered directories.</p>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">feroxbuster</span> <span class="flag">-u</span> <span class="str">https://target.com</span> \
+  <span class="flag">-w</span> <span class="str">/usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt</span> \
+  <span class="flag">-t</span> <span class="val">50</span> <span class="flag">-k</span> <span class="flag">--depth</span> <span class="val">3</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">3</span> Backup File Hunting</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">feroxbuster</span> <span class="flag">-u</span> <span class="str">https://target.com</span> \
+  <span class="flag">-w</span> <span class="str">CommonBackupFileNames.txt</span> \
+  <span class="flag">-x</span> <span class="val">bak,old,backup,zip,tar,gz,sql,save,swp,orig,~,conf,env,log</span> \
+  <span class="flag">-C</span> <span class="val">404,400</span> <span class="flag">-k</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">4</span> Advanced Filtering (Soft 404)</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">feroxbuster</span> <span class="flag">-u</span> <span class="str">https://target.com</span> \
+  <span class="flag">-w</span> <span class="str">wordlist.txt</span> \
+  <span class="flag">-C</span> <span class="val">404,403,400</span> \
+  <span class="flag">-S</span> <span class="val">1234</span> <span class="flag">-W</span> <span class="val">50</span> <span class="flag">-L</span> <span class="val">10</span></code></pre>
+<div class="note"><strong>-S</strong> size · <strong>-W</strong> words · <strong>-L</strong> lines</div></div>
+        <div class="block"><div class="block-title"><span class="num">5</span> With Cookies + Proxy</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">feroxbuster</span> <span class="flag">-u</span> <span class="str">https://target.com</span> \
+  <span class="flag">-w</span> <span class="str">wordlist.txt</span> \
+  <span class="flag">-b</span> <span class="str">"session=abc123"</span> \
+  <span class="flag">-H</span> <span class="str">"Authorization: Bearer xxx"</span> \
+  <span class="flag">-p</span> <span class="str">http://127.0.0.1:8080</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">6</span> WAF Evasion</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">feroxbuster</span> <span class="flag">-u</span> <span class="str">https://target.com</span> \
+  <span class="flag">-w</span> <span class="str">wordlist.txt</span> \
+  <span class="flag">--rate-limit</span> <span class="val">20</span> <span class="flag">-t</span> <span class="val">10</span> \
+  <span class="flag">-A</span> <span class="flag">--timeout</span> <span class="val">10</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">7</span> JSON Reports</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">feroxbuster</span> <span class="flag">-u</span> <span class="str">https://target.com</span> \
+  <span class="flag">-w</span> <span class="str">wordlist.txt</span> \
+  <span class="flag">--json</span> <span class="flag">-o</span> <span class="str">report.json</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">8</span> Option Table</div>
+<table>
+<tr><th>Option</th><th>Purpose</th></tr>
+<tr><td><code>-u</code></td><td>Target URL</td></tr>
+<tr><td><code>-w</code></td><td>Wordlist</td></tr>
+<tr><td><code>-t</code></td><td>Threads</td></tr>
+<tr><td><code>-x</code></td><td>Extensions</td></tr>
+<tr><td><code>-C</code></td><td>Exclude status codes</td></tr>
+<tr><td><code>-S / -W / -L</code></td><td>Exclude size / words / lines</td></tr>
+<tr><td><code>-b</code></td><td>Cookies</td></tr>
+<tr><td><code>-H</code></td><td>Headers</td></tr>
+<tr><td><code>-p</code></td><td>Proxy</td></tr>
+<tr><td><code>-k</code></td><td>Ignore SSL</td></tr>
+<tr><td><code>--depth</code></td><td>Recursion depth</td></tr>
+<tr><td><code>--rate-limit</code></td><td>Requests per second</td></tr>
+<tr><td><code>-A</code></td><td>Random User-Agent</td></tr>
+</table></div>
+<div class="note tip"><strong>💡 Tip:</strong> Feroxbuster outperforms Gobuster in auto-recursion and link extraction. Use it as your default.</div>
+      </div>
+    </section>
+
+    <!-- Spray -->
+    <section class="section" id="spray">
+      <div class="section-header"><div class="s-ico">💦</div><div><h2>Spray</h2><div class="sub">Smart fuzzer with auto-calibration for soft-404</div></div></div>
+      <div class="tool-card">
+        <div class="tool-head"><h3>Spray <span class="ver">v1.0+</span></h3><span class="lang-badge lang-go">Go</span><span class="lang-badge lang-rust">Auto-Calibration</span></div>
+        <p class="tool-desc">A modern tool from the chainreactors team. Its standout feature is intelligent automatic filtering of fake responses (soft 404) — perfect for sites that return 200 on every path.</p>
+        <div class="block"><div class="block-title"><span class="num">1</span> Installation</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmt"># Via go install</span>
+go install github.com/chainreactors/spray@latest
+
+<span class="cmt"># Or ready-made release binaries</span>
+wget https://github.com/chainreactors/spray/releases/latest/download/spray_linux_amd64</code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">2</span> Basic Scan</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">spray</span> <span class="flag">-u</span> <span class="str">https://target.com</span> \
+  <span class="flag">-w</span> <span class="str">wordlist.txt</span> \
+  <span class="flag">-t</span> <span class="val">50</span> <span class="flag">-ac</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">3</span> Scan with Extensions</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">spray</span> <span class="flag">-u</span> <span class="str">https://target.com</span> \
+  <span class="flag">-w</span> <span class="str">wordlist.txt</span> \
+  <span class="flag">-e</span> <span class="val">bak,zip,sql,old,tar.gz</span> \
+  <span class="flag">-ac</span> <span class="flag">-o</span> <span class="str">spray.txt</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">4</span> Proxy + Custom Headers</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">spray</span> <span class="flag">-u</span> <span class="str">https://target.com</span> \
+  <span class="flag">-w</span> <span class="str">wordlist.txt</span> \
+  <span class="flag">-p</span> <span class="str">http://127.0.0.1:8080</span> \
+  <span class="flag">-H</span> <span class="str">"Cookie: session=xxx"</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">5</span> Option Table</div>
+<table>
+<tr><th>Option</th><th>Purpose</th></tr>
+<tr><td><code>-u</code></td><td>URL</td></tr>
+<tr><td><code>-w</code></td><td>Wordlist</td></tr>
+<tr><td><code>-e</code></td><td>Extensions</td></tr>
+<tr><td><code>-ac</code></td><td>Auto-calibration</td></tr>
+<tr><td><code>-t</code></td><td>Threads</td></tr>
+<tr><td><code>-p</code></td><td>Proxy</td></tr>
+<tr><td><code>-H</code></td><td>Headers</td></tr>
+<tr><td><code>-o</code></td><td>Output file</td></tr>
+</table></div>
+<div class="note tip"><strong>💡 When to use Spray:</strong> When ffuf and feroxbuster fail to filter fake responses — Spray learns automatically.</div>
+      </div>
+    </section>
+
+    <!-- FFUF -->
+    <section class="section" id="ffuf">
+      <div class="section-header"><div class="s-ico">🚀</div><div><h2>FFUF</h2><div class="sub">King of flexible filtering — Fuzz Faster U Fool</div></div></div>
+      <div class="tool-card">
+        <div class="tool-head"><h3>FFUF <span class="ver">v2.1+</span></h3><span class="lang-badge lang-go">Go</span><span class="lang-badge lang-rust">Highly Flexible</span></div>
+        <p class="tool-desc">Still the strongest in flexible filtering. Supports FUZZ, W1, W2 for multiple sources, plus clusterbomb/pitchfork modes. Best when you need precise control over results.</p>
+        <div class="block"><div class="block-title"><span class="num">1</span> Installation</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmt"># via apt</span>
+sudo apt install ffuf
+
+<span class="cmt"># or via go</span>
+go install github.com/ffuf/ffuf/v2@latest</code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">2</span> Basic Scan</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">ffuf</span> <span class="flag">-u</span> <span class="str">https://target.com/FUZZ</span> \
+  <span class="flag">-w</span> <span class="str">wordlist.txt</span> \
+  <span class="flag">-fc</span> <span class="val">404</span> <span class="flag">-t</span> <span class="val">50</span> <span class="flag">-c</span> \
+  <span class="flag">-o</span> <span class="str">ffuf.json</span> <span class="flag">-of</span> <span class="val">json</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">3</span> Keywords + Extensions (Clusterbomb)</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">ffuf</span> <span class="flag">-u</span> <span class="str">https://target.com/FUZZ.EXT</span> \
+  <span class="flag">-w</span> <span class="str">common.txt:FUZZ</span> \
+  <span class="flag">-w</span> <span class="str">web-extensions.txt:EXT</span> \
+  <span class="flag">-mode</span> <span class="val">clusterbomb</span> <span class="flag">-fc</span> <span class="val">404</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">4</span> Smart Filtering (size + words + lines)</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">ffuf</span> <span class="flag">-u</span> <span class="str">https://target.com/FUZZ</span> \
+  <span class="flag">-w</span> <span class="str">wordlist.txt</span> \
+  <span class="flag">-fs</span> <span class="val">1234</span> <span class="flag">-fw</span> <span class="val">50</span> <span class="flag">-fl</span> <span class="val">10</span> \
+  <span class="flag">-fc</span> <span class="val">404,403</span> <span class="flag">-ac</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">5</span> Parameter Discovery (GET + POST)</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmt"># GET</span>
+<span class="cmd">ffuf</span> <span class="flag">-u</span> <span class="str">"https://target.com/page.php?FUZZ=test"</span> \
+  <span class="flag">-w</span> <span class="str">burp-parameter-names.txt</span> <span class="flag">-fs</span> <span class="val">0</span> <span class="flag">-ac</span>
+
+<span class="cmt"># POST</span>
+<span class="cmd">ffuf</span> <span class="flag">-u</span> <span class="str">https://target.com/login</span> \
+  <span class="flag">-X</span> <span class="val">POST</span> <span class="flag">-d</span> <span class="str">"user=admin&FUZZ=test"</span> \
+  <span class="flag">-H</span> <span class="str">"Content-Type: application/x-www-form-urlencoded"</span> \
+  <span class="flag">-w</span> <span class="str">params.txt</span> <span class="flag">-fc</span> <span class="val">200</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">6</span> VHost Discovery</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">ffuf</span> <span class="flag">-u</span> <span class="str">https://target.com</span> \
+  <span class="flag">-H</span> <span class="str">"Host: FUZZ.target.com"</span> \
+  <span class="flag">-w</span> <span class="str">subdomains.txt</span> \
+  <span class="flag">-fs</span> <span class="val">4242</span> <span class="flag">-ac</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">7</span> With Proxy + Recursion</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">ffuf</span> <span class="flag">-u</span> <span class="str">https://target.com/FUZZ</span> \
+  <span class="flag">-w</span> <span class="str">wordlist.txt</span> \
+  <span class="flag">-x</span> <span class="str">http://127.0.0.1:8080</span> \
+  <span class="flag">-recursion</span> <span class="flag">-recursion-depth</span> <span class="val">2</span> \
+  <span class="flag">-fc</span> <span class="val">404</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">8</span> Option Table</div>
+<table>
+<tr><th>Option</th><th>Purpose</th></tr>
+<tr><td><code>-u</code></td><td>URL (contains FUZZ)</td></tr>
+<tr><td><code>-w</code></td><td>Wordlist (repeatable)</td></tr>
+<tr><td><code>-X</code></td><td>HTTP method</td></tr>
+<tr><td><code>-d</code></td><td>POST data</td></tr>
+<tr><td><code>-H</code></td><td>Headers</td></tr>
+<tr><td><code>-fc / -fs / -fw / -fl</code></td><td>Filter code / size / words / lines</td></tr>
+<tr><td><code>-ac</code></td><td>Auto-calibrate</td></tr>
+<tr><td><code>-mode</code></td><td>clusterbomb / pitchfork / sniper</td></tr>
+<tr><td><code>-x</code></td><td>Proxy</td></tr>
+<tr><td><code>-recursion</code></td><td>Auto-recursion</td></tr>
+<tr><td><code>-o / -of</code></td><td>Output + format</td></tr>
+</table></div>
+      </div>
+    </section>
+
+    <!-- Gobuster -->
+    <section class="section" id="gobuster">
+      <div class="section-header"><div class="s-ico">🔍</div><div><h2>Gobuster</h2><div class="sub">Classic multi-mode tool (dir/dns/vhost/s3)</div></div></div>
+      <div class="tool-card">
+        <div class="tool-head"><h3>Gobuster <span class="ver">v3.6+</span></h3><span class="lang-badge lang-go">Go</span><span class="lang-badge lang-rust">Multi-Mode</span></div>
+        <p class="tool-desc">Despite newer tools, Gobuster remains especially useful for DNS enumeration and VHost discovery. Stable performance with excellent multi-mode support.</p>
+        <div class="block"><div class="block-title"><span class="num">1</span> Installation</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmt"># apt</span>
+sudo apt install gobuster
+
+<span class="cmt"># go install</span>
+go install github.com/OJ/gobuster/v3@latest</code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">2</span> Basic Scan (dir)</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">gobuster</span> dir <span class="flag">-u</span> <span class="str">https://target.com</span> \
+  <span class="flag">-w</span> <span class="str">wordlist.txt</span> \
+  <span class="flag">-t</span> <span class="val">30</span> <span class="flag">-b</span> <span class="val">404,403</span> <span class="flag">-k</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">3</span> Backup Files</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">gobuster</span> dir <span class="flag">-u</span> <span class="str">https://target.com</span> \
+  <span class="flag">-w</span> <span class="str">CommonBackupFileNames.txt</span> \
+  <span class="flag">-x</span> <span class="val">bak,old,zip,sql,swp,~,conf,env</span> \
+  <span class="flag">-t</span> <span class="val">25</span> <span class="flag">-b</span> <span class="val">404</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">4</span> DNS Subdomain Enum</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">gobuster</span> dns <span class="flag">-d</span> <span class="str">target.com</span> \
+  <span class="flag">-w</span> <span class="str">subdomains-top1million-5000.txt</span> \
+  <span class="flag">-t</span> <span class="val">50</span> <span class="flag">--wildcard</span> <span class="flag">-o</span> <span class="str">subs.txt</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">5</span> VHost Discovery</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">gobuster</span> vhost <span class="flag">-u</span> <span class="str">http://target.com</span> \
+  <span class="flag">-w</span> <span class="str">subdomains-top1million-5000.txt</span> \
+  <span class="flag">--append-domain</span> <span class="flag">-t</span> <span class="val">40</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">6</span> Google Cloud Buckets</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">gobuster</span> s3 <span class="flag">-w</span> <span class="str">bucket-names.txt</span> <span class="flag">-t</span> <span class="val">20</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">7</span> Option Table</div>
+<table>
+<tr><th>Option</th><th>Purpose</th></tr>
+<tr><td><code>-u</code></td><td>URL</td></tr>
+<tr><td><code>-w</code></td><td>Wordlist</td></tr>
+<tr><td><code>-t</code></td><td>Threads</td></tr>
+<tr><td><code>-x</code></td><td>Extensions</td></tr>
+<tr><td><code>-b</code></td><td>Exclude status codes</td></tr>
+<tr><td><code>-s</code></td><td>Show only specific codes</td></tr>
+<tr><td><code>-k</code></td><td>Ignore SSL</td></tr>
+<tr><td><code>-c</code></td><td>Cookies</td></tr>
+<tr><td><code>-H</code></td><td>Headers</td></tr>
+</table></div>
+      </div>
+    </section>
+
+    <!-- Dirsearch -->
+    <section class="section" id="dirsearch">
+      <div class="section-header"><div class="s-ico">📁</div><div><h2>Dirsearch</h2><div class="sub">Python fuzzer with professional reports</div></div></div>
+      <div class="tool-card">
+        <div class="tool-head"><h3>Dirsearch <span class="ver">v0.4.3+</span></h3><span class="lang-badge lang-py">Python</span><span class="lang-badge lang-rust">Beautiful Reports</span></div>
+        <p class="tool-desc">Though mature, Dirsearch remains useful for its clean HTML reports and ease of use. Modern versions are faster and smarter.</p>
+        <div class="block"><div class="block-title"><span class="num">1</span> Installation</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmt"># pip</span>
+pip3 install dirsearch
+
+<span class="cmt"># From source</span>
+git clone https://github.com/maurosoria/dirsearch.git
+cd dirsearch && pip3 install -r requirements.txt</code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">2</span> Basic Scan</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">dirsearch</span> <span class="flag">-u</span> <span class="str">https://target.com</span> \
+  <span class="flag">-e</span> <span class="val">php,html,js,json,txt,bak,old,zip</span> \
+  <span class="flag">-t</span> <span class="val">30</span> <span class="flag">--exclude-status</span> <span class="val">404,403</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">3</span> Custom Wordlist</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">dirsearch</span> <span class="flag">-u</span> <span class="str">https://target.com</span> \
+  <span class="flag">-w</span> <span class="str">/usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt</span> \
+  <span class="flag">-e</span> <span class="val">php,html,js</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">4</span> Multiple HTTP Methods + Recursion</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">dirsearch</span> <span class="flag">-u</span> <span class="str">https://target.com</span> \
+  <span class="flag">-m</span> <span class="val">GET,POST</span> <span class="flag">-r</span> <span class="flag">-R</span> <span class="val">3</span> \
+  <span class="flag">--recursion-status</span> <span class="val">200,301,302</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">5</span> Advanced Exclusions</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">dirsearch</span> <span class="flag">-u</span> <span class="str">https://target.com</span> \
+  <span class="flag">--exclude-texts</span> <span class="str">"Not Found"</span> \
+  <span class="flag">--exclude-sizes</span> <span class="str">"0B,123B"</span> \
+  <span class="flag">--exclude-redirects</span> <span class="str">"https://target.com/404"</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">6</span> HTML / JSON Reports</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">dirsearch</span> <span class="flag">-u</span> <span class="str">https://target.com</span> \
+  <span class="flag">-e</span> <span class="val">php,html</span> \
+  <span class="flag">--format</span> <span class="val">html</span> \
+  <span class="flag">-o</span> <span class="str">report.html</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">7</span> Proxy + Random Agent</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">dirsearch</span> <span class="flag">-u</span> <span class="str">https://target.com</span> \
+  <span class="flag">--proxy</span> <span class="str">http://127.0.0.1:8080</span> \
+  <span class="flag">--delay</span> <span class="val">0.5</span> <span class="flag">-t</span> <span class="val">10</span> \
+  <span class="flag">--random-agent</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">8</span> Option Table</div>
+<table>
+<tr><th>Option</th><th>Purpose</th></tr>
+<tr><td><code>-u</code></td><td>URL</td></tr>
+<tr><td><code>-e</code></td><td>Extensions</td></tr>
+<tr><td><code>-w</code></td><td>Wordlist</td></tr>
+<tr><td><code>-t</code></td><td>Threads</td></tr>
+<tr><td><code>-m</code></td><td>HTTP methods</td></tr>
+<tr><td><code>-r / -R</code></td><td>Auto-recursion / depth</td></tr>
+<tr><td><code>--exclude-status</code></td><td>Exclude status codes</td></tr>
+<tr><td><code>--exclude-sizes</code></td><td>Exclude sizes</td></tr>
+<tr><td><code>--exclude-texts</code></td><td>Exclude text patterns</td></tr>
+<tr><td><code>--format</code></td><td>Report format</td></tr>
+</table></div>
+      </div>
+    </section>
+
+    <!-- x8 -->
+    <section class="section" id="x8">
+      <div class="section-header"><div class="s-ico">🎯</div><div><h2>x8</h2><div class="sub">Fastest hidden parameter discovery</div></div></div>
+      <div class="tool-card">
+        <div class="tool-head"><h3>x8 <span class="ver">v3.0+</span></h3><span class="lang-badge lang-rust">Rust</span><span class="lang-badge lang-go">Parameter Discovery</span></div>
+        <p class="tool-desc">The modern replacement for Arjun — dozens of times faster, using value reflection + chunking. Discovers parameters in GET, POST, JSON, and headers with intelligence.</p>
+        <div class="block"><div class="block-title"><span class="num">1</span> Installation</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmt"># Cargo</span>
+cargo install x8
+
+<span class="cmt"># Or download binary</span>
+wget https://github.com/Sh1Yo/x8/releases/latest/download/x8-linux-amd64</code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">2</span> Basic GET Parameter Scan</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">x8</span> <span class="flag">-u</span> <span class="str">"https://target.com/page"</span> \
+  <span class="flag">-w</span> <span class="str">params.txt</span> \
+  <span class="flag">--reflected-only</span> <span class="flag">-c</span> <span class="val">50</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">3</span> POST + JSON Scan</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">x8</span> <span class="flag">-u</span> <span class="str">"https://api.target.com/v1/user"</span> \
+  <span class="flag">-X</span> <span class="val">POST</span> \
+  <span class="flag">-b</span> <span class="str">"session=abc"</span> \
+  <span class="flag">-H</span> <span class="str">"Content-Type: application/json"</span> \
+  <span class="flag">-w</span> <span class="str">params.txt</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">4</span> Multi-Block (Bypass)</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">x8</span> <span class="flag">-u</span> <span class="str">"https://target.com/api"</span> \
+  <span class="flag">-w</span> <span class="str">params.txt</span> \
+  <span class="flag">--reflected-only</span> \
+  <span class="flag">--learn-requests</span> <span class="val">10</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">5</span> From URL File</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">cat</span> urls.txt <span class="pipe">|</span> <span class="cmd">x8</span> <span class="flag">-w</span> <span class="str">params.txt</span> \
+  <span class="flag">--reflected-only</span> <span class="flag">-o</span> <span class="str">found-params.txt</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">6</span> Option Table</div>
+<table>
+<tr><th>Option</th><th>Purpose</th></tr>
+<tr><td><code>-u</code></td><td>URL</td></tr>
+<tr><td><code>-w</code></td><td>Parameter wordlist</td></tr>
+<tr><td><code>-X</code></td><td>HTTP method</td></tr>
+<tr><td><code>-b</code></td><td>Cookies</td></tr>
+<tr><td><code>-H</code></td><td>Headers</td></tr>
+<tr><td><code>--reflected-only</code></td><td>Reflected parameters only</td></tr>
+<tr><td><code>-c</code></td><td>Concurrency</td></tr>
+<tr><td><code>--learn-requests</code></td><td>Learning requests</td></tr>
+</table></div>
+<div class="note tip"><strong>💡 Best:</strong> x8 is the new standard for parameter discovery — lower memory than Arjun and drastically faster.</div>
+      </div>
+    </section>
+
+    <!-- Kiterunner -->
+    <section class="section" id="kiterunner">
+      <div class="section-header"><div class="s-ico">🪁</div><div><h2>Kiterunner</h2><div class="sub">The strongest API endpoint discovery</div></div></div>
+      <div class="tool-card">
+        <div class="tool-head"><h3>Kiterunner <span class="ver">v1.0.2+</span></h3><span class="lang-badge lang-go">Go</span><span class="lang-badge lang-rust">API Discovery</span></div>
+        <p class="tool-desc">From the Assetnote team, purpose-built for discovering REST API routes. Uses smart wordlists that understand path structure — far faster than any traditional fuzzer on APIs.</p>
+        <div class="block"><div class="block-title"><span class="num">1</span> Installation</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmt"># Download binary</span>
+wget https://github.com/assetnote/kiterunner/releases/latest/download/kr_linux_amd64
+chmod +x kr_linux_amd64 && sudo mv kr_linux_amd64 /usr/local/bin/kr
+
+<span class="cmt"># Download wordlists (.kite)</span>
+wget https://wordlists-cdn.assetnote.io/data/kiterunner/routes-large.kite.tar.gz
+tar -xzf routes-large.kite.tar.gz</code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">2</span> Basic API Scan</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">kr</span> scan <span class="str">https://api.target.com</span> \
+  <span class="flag">-w</span> <span class="str">routes-large.kite</span> \
+  <span class="flag">-x</span> <span class="val">20</span> <span class="flag">-o</span> <span class="str">api-scan.txt</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">3</span> Single Wordlist Brute</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">kr</span> brute <span class="str">https://api.target.com</span> \
+  <span class="flag">-w</span> <span class="str">routes.kite</span> \
+  <span class="flag">-A</span><span class="val">=apiroutes-240528</span> \
+  <span class="flag">-x</span> <span class="val">15</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">4</span> With Auth + Headers</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">kr</span> scan <span class="str">https://api.target.com</span> \
+  <span class="flag">-w</span> <span class="str">routes.kite</span> \
+  <span class="flag">-H</span> <span class="str">"Authorization: Bearer xxx"</span> \
+  <span class="flag">--fail-status-codes</span> <span class="val">404,400</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">5</span> Specific Values + JSON Output</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">kr</span> scan <span class="str">https://api.target.com</span> \
+  <span class="flag">-w</span> <span class="str">routes.kite</span> \
+  <span class="flag">-j</span> <span class="flag">-o</span> <span class="str">api.json</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">6</span> Option Table</div>
+<table>
+<tr><th>Option</th><th>Purpose</th></tr>
+<tr><td><code>scan</code></td><td>Fast scan mode</td></tr>
+<tr><td><code>brute</code></td><td>Single wordlist mode</td></tr>
+<tr><td><code>-w</code></td><td>.kite wordlist</td></tr>
+<tr><td><code>-x</code></td><td>Concurrency</td></tr>
+<tr><td><code>-H</code></td><td>Headers</td></tr>
+<tr><td><code>--fail-status-codes</code></td><td>Codes treated as failures</td></tr>
+<tr><td><code>-j</code></td><td>JSON output</td></tr>
+<tr><td><code>-A</code></td><td>Use Assetnote ready-made wordlist</td></tr>
+</table></div>
+<div class="note tip"><strong>💡 Best for:</strong> bug bounty on APIs (HackerOne, Bugcrowd). Don't use on regular websites — ffuf/feroxbuster are better for those.</div>
+      </div>
+    </section>
+
+    <!-- Fuzzuli -->
+    <section class="section" id="fuzzuli">
+      <div class="section-header"><div class="s-ico">💾</div><div><h2>Fuzzuli</h2><div class="sub">The #1 backup file discovery specialist</div></div></div>
+      <div class="tool-card">
+        <div class="tool-head"><h3>Fuzzuli <span class="ver">v1.1+</span></h3><span class="lang-badge lang-go">Go</span><span class="lang-badge lang-rust">Backup Files</span></div>
+        <p class="tool-desc">No static wordlist needed! It dynamically builds candidate names from the domain (domain.com, www.domain.com, domain-backup, etc.) and discovers backup files in all their forms.</p>
+        <div class="block"><div class="block-title"><span class="num">1</span> Installation</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmt"># go install</span>
+go install github.com/musana/fuzzuli@latest
+
+<span class="cmt"># or ready-made binary</span>
+wget https://github.com/musana/fuzzuli/releases/latest/download/fuzzuli_linux_amd64</code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">2</span> Basic Scan</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">fuzzuli</span> <span class="flag">-u</span> <span class="str">https://target.com</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">3</span> Specific Extensions + Output</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">fuzzuli</span> <span class="flag">-url</span> <span class="str">https://target.com</span> \
+  <span class="flag">-ext</span> <span class="val">zip,tar.gz,sql,rar,7z,bak,backup</span> \
+  <span class="flag">-o</span> <span class="str">backups.txt</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">4</span> Multiple Methods + Threads</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">fuzzuli</span> <span class="flag">-url</span> <span class="str">https://target.com</span> \
+  <span class="flag">-method</span> <span class="val">get,head</span> \
+  <span class="flag">-t</span> <span class="val">30</span> \
+  <span class="flag">-ac</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">5</span> Status Code Filtering</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">fuzzuli</span> <span class="flag">-url</span> <span class="str">https://target.com</span> \
+  <span class="flag">-ext</span> <span class="val">zip,sql,tar.gz</span> \
+  <span class="flag">-s</span> <span class="val">200,301,302</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">6</span> Option Table</div>
+<table>
+<tr><th>Option</th><th>Purpose</th></tr>
+<tr><td><code>-u / -url</code></td><td>URL</td></tr>
+<tr><td><code>-ext</code></td><td>Extensions</td></tr>
+<tr><td><code>-method</code></td><td>HTTP methods</td></tr>
+<tr><td><code>-t</code></td><td>Threads</td></tr>
+<tr><td><code>-s</code></td><td>Allowed status codes</td></tr>
+<tr><td><code>-ac</code></td><td>Auto-calibration</td></tr>
+<tr><td><code>-o</code></td><td>Output file</td></tr>
+</table></div>
+<div class="note tip"><strong>💡 Highlight:</strong> Unlike ffuf/feroxbuster, Fuzzuli dynamically generates names like <code>domain.zip</code>, <code>domain.com.zip</code>, <code>domain-backup.zip</code> — things no static wordlist contains.</div>
+      </div>
+    </section>
+
+    <!-- Katana -->
+    <section class="section" id="katana">
+      <div class="section-header"><div class="s-ico">🗡️</div><div><h2>Katana</h2><div class="sub">Modern crawler with headless + JS parsing</div></div></div>
+      <div class="tool-card">
+        <div class="tool-head"><h3>Katana <span class="ver">v1.1+</span></h3><span class="lang-badge lang-go">Go</span><span class="lang-badge lang-rust">Web Crawler</span></div>
+        <p class="tool-desc">From ProjectDiscovery, an advanced crawler using headless Chromium + JS parsing + form filling. Far superior to hakrawler and gospider.</p>
+        <div class="block"><div class="block-title"><span class="num">1</span> Installation</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmt"># go install</span>
+go install github.com/projectdiscovery/katana/cmd/katana@latest
+
+<span class="cmt"># or via apt</span>
+sudo apt install katana</code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">2</span> Basic Crawl</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">katana</span> <span class="flag">-u</span> <span class="str">https://target.com</span> \
+  <span class="flag">-d</span> <span class="val">3</span> <span class="flag">-silent</span> <span class="flag">-o</span> <span class="str">urls.txt</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">3</span> Deep Crawl with JS + Forms</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">katana</span> <span class="flag">-u</span> <span class="str">https://target.com</span> \
+  <span class="flag">-jc</span> <span class="flag">-kf</span> <span class="val">all</span> \
+  <span class="flag">-aff</span> \
+  <span class="flag">-d</span> <span class="val">5</span> <span class="flag">-silent</span></code></pre>
+<div class="note"><strong>-jc</strong> JS crawling · <strong>-kf</strong> known files · <strong>-aff</strong> auto form fill</div></div>
+        <div class="block"><div class="block-title"><span class="num">4</span> Headless Mode (JS-heavy sites)</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">katana</span> <span class="flag">-u</span> <span class="str">https://target.com</span> \
+  <span class="flag">-headless</span> <span class="flag">-no-sandbox</span> \
+  <span class="flag">-jc</span> <span class="flag">-d</span> <span class="val">3</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">5</span> From URL List</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">cat</span> live.txt <span class="pipe">|</span> <span class="cmd">katana</span> <span class="flag">-list</span> /dev/stdin <span class="flag">-jc</span> <span class="flag">-silent</span> <span class="flag">-o</span> urls.txt</code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">6</span> Proxy + Filters</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">katana</span> <span class="flag">-u</span> <span class="str">https://target.com</span> \
+  <span class="flag">-proxy</span> <span class="str">http://127.0.0.1:8080</span> \
+  <span class="flag">-ef</span> <span class="val">woff,css,png,jpg,svg</span> \
+  <span class="flag">-fs</span> <span class="str">'regex:\.(css|js|woff)$'</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">7</span> Option Table</div>
+<table>
+<tr><th>Option</th><th>Purpose</th></tr>
+<tr><td><code>-u</code></td><td>URL</td></tr>
+<tr><td><code>-list</code></td><td>URL list</td></tr>
+<tr><td><code>-d</code></td><td>Crawl depth</td></tr>
+<tr><td><code>-jc</code></td><td>JS crawling</td></tr>
+<tr><td><code>-kf</code></td><td>Known files (robots, sitemap...)</td></tr>
+<tr><td><code>-aff</code></td><td>Auto form fill</td></tr>
+<tr><td><code>-headless</code></td><td>Headless browser mode</td></tr>
+<tr><td><code>-proxy</code></td><td>Proxy</td></tr>
+<tr><td><code>-ef / -fs</code></td><td>Extension filters</td></tr>
+</table></div>
+      </div>
+    </section>
+
+    <!-- Nuclei -->
+    <section class="section" id="nuclei">
+      <div class="section-header"><div class="s-ico">☢️</div><div><h2>Nuclei</h2><div class="sub">Template-based vulnerability scanning engine</div></div></div>
+      <div class="tool-card">
+        <div class="tool-head"><h3>Nuclei <span class="ver">v3.3+</span></h3><span class="lang-badge lang-go">Go</span><span class="lang-badge lang-rust">+9000 Templates</span></div>
+        <p class="tool-desc">While not a fuzzer, it's an essential complement. Detects CVEs, misconfigurations, exposures, and takeovers using community templates.</p>
+        <div class="block"><div class="block-title"><span class="num">1</span> Installation</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmt"># go install</span>
+go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
+
+<span class="cmt"># or apt</span>
+sudo apt install nuclei
+
+<span class="cmt"># Update templates</span>
+nuclei -update-templates</code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">2</span> Basic Scan</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">nuclei</span> <span class="flag">-u</span> <span class="str">https://target.com</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">3</span> Specific Categories</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">nuclei</span> <span class="flag">-u</span> <span class="str">https://target.com</span> \
+  <span class="flag">-t</span> <span class="val">cves/</span> <span class="flag">-t</span> <span class="val">exposures/</span> <span class="flag">-t</span> <span class="val">misconfiguration/</span> \
+  <span class="flag">-severity</span> <span class="val">critical,high,medium</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">4</span> From URL List</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">cat</span> urls.txt <span class="pipe">|</span> <span class="cmd">nuclei</span> \
+  <span class="flag">-t</span> <span class="val">cves/,exposures/</span> \
+  <span class="flag">-severity</span> <span class="val">critical,high</span> \
+  <span class="flag">-o</span> <span class="str">vulns.txt</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">5</span> Takeovers + Default Logins</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">nuclei</span> <span class="flag">-l</span> <span class="str">subdomains.txt</span> \
+  <span class="flag">-t</span> <span class="val">http/takeovers/</span> \
+  <span class="flag">-t</span> <span class="val">http/default-logins/</span> \
+  <span class="flag">-stats</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">6</span> Fast Scan by Severity</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">nuclei</span> <span class="flag">-u</span> <span class="str">https://target.com</span> \
+  <span class="flag">-severity</span> <span class="val">critical,high</span> \
+  <span class="flag">-rl</span> <span class="val">150</span> <span class="flag">-c</span> <span class="val">50</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">7</span> Option Table</div>
+<table>
+<tr><th>Option</th><th>Purpose</th></tr>
+<tr><td><code>-u</code></td><td>Single URL</td></tr>
+<tr><td><code>-l</code></td><td>List</td></tr>
+<tr><td><code>-t</code></td><td>Template or folder</td></tr>
+<tr><td><code>-severity</code></td><td>critical / high / medium / low</td></tr>
+<tr><td><code>-rl</code></td><td>Rate limit</td></tr>
+<tr><td><code>-c</code></td><td>Concurrency</td></tr>
+<tr><td><code>-o</code></td><td>Output</td></tr>
+</table></div>
+      </div>
+    </section>
+
+    <!-- Dalfox -->
+    <section class="section" id="dalfox">
+      <div class="section-header"><div class="s-ico">🦊</div><div><h2>Dalfox</h2><div class="sub">Fastest, most accurate XSS automation</div></div></div>
+      <div class="tool-card">
+        <div class="tool-head"><h3>Dalfox <span class="ver">v2.9+</span></h3><span class="lang-badge lang-go">Go</span><span class="lang-badge lang-rust">XSS Scanner</span></div>
+        <p class="tool-desc">The modern replacement for XSStrike. Supports DOM XSS, blind XSS, parameter mining, and WAF bypass using advanced techniques to find real XSS.</p>
+        <div class="block"><div class="block-title"><span class="num">1</span> Installation</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmt"># go install</span>
+go install github.com/hahwul/dalfox/v2@latest
+
+<span class="cmt"># or apt</span>
+sudo apt install dalfox</code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">2</span> Direct URL Scan</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">dalfox</span> url <span class="str">"https://target.com/search?q=test"</span> \
+  <span class="flag">--deep-domxss</span> \
+  <span class="flag">--mining-dict</span> <span class="flag">--mining-dom</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">3</span> From Pipe (after Katana)</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">cat</span> urls.txt <span class="pipe">|</span> <span class="cmd">dalfox</span> pipe \
+  <span class="flag">--deep-domxss</span> \
+  <span class="flag">--blind</span> <span class="str">https://your.xsshunter.com</span> \
+  <span class="flag">-o</span> <span class="str">xss.txt</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">4</span> POST + Headers</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">dalfox</span> url <span class="str">https://target.com/comment</span> \
+  <span class="flag">-X</span> <span class="val">POST</span> \
+  <span class="flag">-d</span> <span class="str">"comment=test&name=test"</span> \
+  <span class="flag">-H</span> <span class="str">"Cookie: session=xxx"</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">5</span> With WAF Bypass</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">dalfox</span> url <span class="str">"https://target.com/page?x=1"</span> \
+  <span class="flag">--waf-evasion</span> \
+  <span class="flag">--delay</span> <span class="val">500</span> \
+  <span class="flag">--deep-domxss</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">6</span> Bulk URL File</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">dalfox</span> file <span class="str">urls.txt</span> \
+  <span class="flag">--deep-domxss</span> \
+  <span class="flag">--blind</span> <span class="str">https://your.xsshunter.com</span> \
+  <span class="flag">-w</span> <span class="val">50</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">7</span> Option Table</div>
+<table>
+<tr><th>Option</th><th>Purpose</th></tr>
+<tr><td><code>url / pipe / file</code></td><td>Input mode</td></tr>
+<tr><td><code>-X</code></td><td>HTTP method</td></tr>
+<tr><td><code>-d</code></td><td>POST data</td></tr>
+<tr><td><code>-H</code></td><td>Headers</td></tr>
+<tr><td><code>--deep-domxss</code></td><td>DOM XSS scanning</td></tr>
+<tr><td><code>--blind</code></td><td>Blind XSS (XSSHunter)</td></tr>
+<tr><td><code>--mining-dict</code></td><td>Parameter mining</td></tr>
+<tr><td><code>--waf-evasion</code></td><td>WAF bypass</td></tr>
+</table></div>
+      </div>
+    </section>
+
+    <!-- httpx -->
+    <section class="section" id="httpx">
+      <div class="section-header"><div class="s-ico">🌐</div><div><h2>httpx</h2><div class="sub">Live host validation & metadata toolkit</div></div></div>
+      <div class="tool-card">
+        <div class="tool-head"><h3>httpx <span class="ver">v1.6+</span></h3><span class="lang-badge lang-go">Go</span><span class="lang-badge lang-rust">HTTP Toolkit</span></div>
+        <p class="tool-desc">An essential companion in any pipeline. Validates live hosts, fetches titles, technologies, certificates, CDNs, and catches errors.</p>
+        <div class="block"><div class="block-title"><span class="num">1</span> Installation</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmt"># go install</span>
+go install github.com/projectdiscovery/httpx/cmd/httpx@latest
+
+<span class="cmt"># apt</span>
+sudo apt install httpx-toolkit</code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">2</span> Basic from List</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">cat</span> subs.txt <span class="pipe">|</span> <span class="cmd">httpx</span> \
+  <span class="flag">-silent</span> <span class="flag">-sc</span> <span class="flag">-title</span> \
+  <span class="flag">-tech-detect</span> <span class="flag">-o</span> <span class="str">live.txt</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">3</span> Comprehensive</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">cat</span> subs.txt <span class="pipe">|</span> <span class="cmd">httpx</span> \
+  <span class="flag">-sc</span> <span class="flag">-title</span> <span class="flag">-server</span> <span class="flag">-cname</span> \
+  <span class="flag">-tech-detect</span> <span class="flag">-cdn</span> <span class="flag">-ip</span> \
+  <span class="flag">-json</span> <span class="flag">-o</span> <span class="str">info.json</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">4</span> Screenshots</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">cat</span> live.txt <span class="pipe">|</span> <span class="cmd">httpx</span> \
+  <span class="flag">-screenshot</span> <span class="flag">-screenshot-timeout</span> <span class="val">10</span> \
+  <span class="flag">-system-chrome</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">5</span> Filter Unwanted Responses</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">cat</span> subs.txt <span class="pipe">|</span> <span class="cmd">httpx</span> \
+  <span class="flag">-sc</span> <span class="flag">-title</span> \
+  <span class="flag">-filter-status-code</span> <span class="val">404,403,500</span> \
+  <span class="flag">-filter-string</span> <span class="str">"Welcome to nginx"</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">6</span> Option Table</div>
+<table>
+<tr><th>Option</th><th>Purpose</th></tr>
+<tr><td><code>-sc</code></td><td>Show status code</td></tr>
+<tr><td><code>-title</code></td><td>Page title</td></tr>
+<tr><td><code>-tech-detect</code></td><td>Detect technologies</td></tr>
+<tr><td><code>-server</code></td><td>Server</td></tr>
+<tr><td><code>-cdn</code></td><td>CDN detection</td></tr>
+<tr><td><code>-ip</code></td><td>IP address</td></tr>
+<tr><td><code>-screenshot</code></td><td>Screenshot</td></tr>
+<tr><td><code>-filter-status-code</code></td><td>Exclude status codes</td></tr>
+<tr><td><code>-json</code></td><td>JSON output</td></tr>
+</table></div>
+      </div>
+    </section>
+
+    <!-- Subfinder -->
+    <section class="section" id="subfinder">
+      <div class="section-header"><div class="s-ico">🔎</div><div><h2>Subfinder</h2><div class="sub">Passive subdomain enumeration</div></div></div>
+      <div class="tool-card">
+        <div class="tool-head"><h3>Subfinder <span class="ver">v2.6+</span></h3><span class="lang-badge lang-go">Go</span><span class="lang-badge lang-rust">Passive Enum</span></div>
+        <p class="tool-desc">Collects subdomains from 30+ passive sources (Shodan, Censys, VirusTotal, ...). Never touches the target directly — ideal for the first recon phase.</p>
+        <div class="block"><div class="block-title"><span class="num">1</span> Installation</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmt"># go install</span>
+go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
+
+<span class="cmt"># apt</span>
+sudo apt install subfinder</code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">2</span> Basic Collection</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">subfinder</span> <span class="flag">-d</span> <span class="str">target.com</span> \
+  <span class="flag">-all</span> <span class="flag">-silent</span> <span class="flag">-o</span> <span class="str">subs.txt</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">3</span> All Sources + Stats</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">subfinder</span> <span class="flag">-d</span> <span class="str">target.com</span> \
+  <span class="flag">-all</span> <span class="flag">-recursive</span> \
+  <span class="flag">-stats</span> <span class="flag">-o</span> <span class="str">subs-all.txt</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">4</span> From Domain List</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmd">subfinder</span> <span class="flag">-dL</span> <span class="str">domains.txt</span> \
+  <span class="flag">-all</span> <span class="flag">-silent</span> <span class="flag">-o</span> <span class="str">subs.txt</span></code></pre></div>
+        <div class="block"><div class="block-title"><span class="num">5</span> Option Table</div>
+<table>
+<tr><th>Option</th><th>Purpose</th></tr>
+<tr><td><code>-d</code></td><td>Single domain</td></tr>
+<tr><td><code>-dL</code></td><td>Domain list</td></tr>
+<tr><td><code>-all</code></td><td>Use all sources</td></tr>
+<tr><td><code>-recursive</code></td><td>Expand subdomains</td></tr>
+<tr><td><code>-silent</code></td><td>Clean output</td></tr>
+<tr><td><code>-o</code></td><td>Output file</td></tr>
+</table></div>
+      </div>
+    </section>
+
+    <!-- Wordlists -->
+    <section class="section" id="wordlists">
+      <div class="section-header"><div class="s-ico">📚</div><div><h2>Popular Professional Wordlists</h2><div class="sub">15 curated lists by use case</div></div></div>
+      <div class="tool-card">
+        <div class="block-title"><span class="num">1</span> Essential Repositories</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmt"># SecLists (the most comprehensive)</span>
+git clone https://github.com/danielmiessler/SecLists.git /usr/share/seclists
+
+<span class="cmt"># Assetnote (regularly updated — currently best)</span>
+git clone https://github.com/assetnote/wordlists.git
+
+<span class="cmt"># OneListForAll (aggregated)</span>
+git clone https://github.com/six2dez/OneListForAll.git
+
+<span class="cmt"># Bug bounty wordlists</span>
+git clone https://github.com/0xPugazh/Wordlists.git</code></pre>
+
+        <div class="block-title" style="margin-top:20px"><span class="num">2</span> Curated Picks by Use Case</div>
+        <div class="wl-grid">
+          <div class="wl-card"><h4>📂 Directories (medium)</h4><div class="use">Core paths — best for starting.</div><div class="path">SecLists/Discovery/Web-Content/raft-medium-directories.txt</div></div>
+          <div class="wl-card"><h4>📂 Directories (large)</h4><div class="use">Comprehensive paths for large sites.</div><div class="path">SecLists/Discovery/Web-Content/directory-list-2.3-medium.txt</div></div>
+          <div class="wl-card"><h4>🔧 Common Files</h4><div class="use">Common files (robots, sitemap...).</div><div class="path">SecLists/Discovery/Web-Content/common.txt</div></div>
+          <div class="wl-card"><h4>💾 Backup Files</h4><div class="use">Backup file names.</div><div class="path">SecLists/Discovery/Web-Content/CommonBackupFileNames.txt</div></div>
+          <div class="wl-card"><h4>🗂️ Backup Extensions</h4><div class="use">Backup extensions only.</div><div class="path">SecLists/Discovery/Web-Content/backup-files.txt</div></div>
+          <div class="wl-card"><h4>🎯 Parameters</h4><div class="use">Common parameter names for x8/ffuf.</div><div class="path">SecLists/Discovery/Web-Content/burp-parameter-names.txt</div></div>
+          <div class="wl-card"><h4>🔍 Subdomains (Top 5000)</h4><div class="use">Top 5000 subdomains.</div><div class="path">SecLists/Discovery/DNS/subdomains-top1million-5000.txt</div></div>
+          <div class="wl-card"><h4>🔍 Subdomains (Full)</h4><div class="use">Million-line list (heavy).</div><div class="path">SecLists/Discovery/DNS/subdomains-top1million-110000.txt</div></div>
+          <div class="wl-card"><h4>🛣️ API Routes (Large)</h4><div class="use">API routes for endpoint discovery.</div><div class="path">assetnote/kiterunner/routes-large.kite</div></div>
+          <div class="wl-card"><h4>🛣️ API Routes (Small)</h4><div class="use">Lighter version for faster discovery.</div><div class="path">assetnote/kiterunner/routes-small.kite</div></div>
+          <div class="wl-card"><h4>🔐 Common Passwords</h4><div class="use">Common passwords for brute force testing.</div><div class="path">SecLists/Passwords/Common-Credentials/10-million-password-list-top-1000000.txt</div></div>
+          <div class="wl-card"><h4>👤 Usernames</h4><div class="use">Common usernames.</div><div class="path">SecLists/Usernames/top-usernames-shortlist.txt</div></div>
+          <div class="wl-card"><h4>🎭 XSS Payloads</h4><div class="use">Ready-to-use XSS payloads for dalfox.</div><div class="path">SecLists/Fuzzing/XSS/</div></div>
+          <div class="wl-card"><h4>🎭 SQLi Payloads</h4><div class="use">SQL injection payloads.</div><div class="path">SecLists/Fuzzing/SQLi/</div></div>
+          <div class="wl-card"><h4>🎭 LFI Payloads</h4><div class="use">Local File Inclusion payloads.</div><div class="path">SecLists/Fuzzing/LFI/</div></div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="block-title"><span class="num">3</span> Custom Wordlist Generators</div>
+<pre><button class="copy-btn">copy</button><code><span class="cmt"># CeWL — extract words from a site</span>
+cewl https://target.com -d 3 -m 5 -w custom-wordlist.txt
+
+<span class="cmt"># hashcat-utils — combine/merge</span>
+combinator wordlist1.txt wordlist2.txt > combined.txt
+
+<span class="cmt"># wordlistctl — manage lists</span>
+wordlistctl fetch -l all -d /usr/share/wordlists</code></pre>
+      </div>
+
+      <div class="note tip"><strong>💡 Tip:</strong> Start with <code>raft-medium-directories</code>, then scale up to <code>directory-list-2.3-medium</code> if nothing is found. Avoid starting with million-word lists unless you can wait hours.</div>
+    </section>
+
+    <!-- Comparison -->
+    <section class="section" id="comparison">
+      <div class="section-header"><div class="s-ico">📊</div><div><h2>Final Comparison Table</h2><div class="sub">When to use each tool</div></div></div>
+
+      <div class="tool-card">
+        <table>
+          <tr><th>Tool</th><th>Language</th><th>Best For</th><th>Rating</th></tr>
+          <tr><td><strong>Feroxbuster</strong></td><td><span class="lang-badge lang-rust">Rust</span></td><td>Auto-recursive general discovery</td><td class="rate">⭐⭐⭐⭐⭐</td></tr>
+          <tr><td><strong>Spray</strong></td><td><span class="lang-badge lang-go">Go</span></td><td>Smart fuzzing with auto-calibration</td><td class="rate">⭐⭐⭐⭐⭐</td></tr>
+          <tr><td><strong>x8</strong></td><td><span class="lang-badge lang-rust">Rust</span></td><td>Parameter discovery</td><td class="rate">⭐⭐⭐⭐⭐</td></tr>
+          <tr><td><strong>Kiterunner</strong></td><td><span class="lang-badge lang-go">Go</span></td><td>API endpoints</td><td class="rate">⭐⭐⭐⭐⭐</td></tr>
+          <tr><td><strong>Fuzzuli</strong></td><td><span class="lang-badge lang-go">Go</span></td><td>Backup files</td><td class="rate">⭐⭐⭐⭐⭐</td></tr>
+          <tr><td><strong>Katana</strong></td><td><span class="lang-badge lang-go">Go</span></td><td>Modern crawling</td><td class="rate">⭐⭐⭐⭐⭐</td></tr>
+          <tr><td><strong>Nuclei</strong></td><td><span class="lang-badge lang-go">Go</span></td><td>Vulnerability scanning</td><td class="rate">⭐⭐⭐⭐⭐</td></tr>
+          <tr><td><strong>Dalfox</strong></td><td><span class="lang-badge lang-go">Go</span></td><td>XSS</td><td class="rate">⭐⭐⭐⭐⭐</td></tr>
+          <tr><td><strong>FFUF</strong></td><td><span class="lang-badge lang-go">Go</span></td><td>Flexible filtering</td><td class="rate g">⭐⭐⭐⭐</td></tr>
+          <tr><td><strong>httpx</strong></td><td><span class="lang-badge lang-go">Go</span></td><td>Live validation</td><td class="rate">⭐⭐⭐⭐⭐</td></tr>
+          <tr><td><strong>Subfinder</strong></td><td><span class="lang-badge lang-go">Go</span></td><td>Passive subdomain enum</td><td class="rate">⭐⭐⭐⭐⭐</td></tr>
+          <tr><td><strong>Gobuster</strong></td><td><span class="lang-badge lang-go">Go</span></td><td>DNS / VHost</td><td class="rate g">⭐⭐⭐</td></tr>
+          <tr><td><strong>Dirsearch</strong></td><td><span class="lang-badge lang-py">Python</span></td><td>Beautiful reports</td><td class="rate g">⭐⭐⭐</td></tr>
+        </table>
+
+        <div class="note warn" style="margin-top:20px"><strong>⚠️ Note:</strong> Every tool has its ideal use case. There is no absolute "best." Professional teams use an integrated toolkit and pick per scenario.</div>
+      </div>
+
+      <div class="tool-card">
+        <div class="block-title"><span class="num">3</span> Scenario Recommendations</div>
+        <table>
+          <tr><th>Scenario</th><th>Best Tool</th><th>Alternative</th></tr>
+          <tr><td>Regular site — paths</td><td>Feroxbuster</td><td>ffuf</td></tr>
+          <tr><td>Site returns 200 for everything</td><td>Spray (auto-calib)</td><td>ffuf -ac</td></tr>
+          <tr><td>Parameter discovery</td><td>x8</td><td>ffuf + wordlist</td></tr>
+          <tr><td>API endpoints</td><td>Kiterunner</td><td>ffuf on /api/FUZZ</td></tr>
+          <tr><td>Backup files</td><td>Fuzzuli</td><td>feroxbuster -x bak</td></tr>
+          <tr><td>Modern crawling with JS</td><td>Katana</td><td>gospider</td></tr>
+          <tr><td>Comprehensive vuln scan</td><td>Nuclei</td><td>—</td></tr>
+          <tr><td>XSS automation</td><td>Dalfox</td><td>XSStrike</td></tr>
+          <tr><td>Passive subdomain enum</td><td>Subfinder</td><td>amass passive</td></tr>
+          <tr><td>DNS brute force</td><td>Gobuster dns</td><td>shuffledns</td></tr>
+        </table>
+      </div>
+    </section>
+
+    <footer>
+      <p>⚡ <strong>Modern Web Fuzzing Arsenal</strong> · 2026 Edition</p>
+      <p>For educational purposes and authorized penetration testing only</p>
+      <p><strong>⚠️ Legal Warning:</strong> Using these tools against systems without explicit written permission is a criminal offense in most jurisdictions.</p>
+    </footer>
+  </main>
+</div>
+
+<script>
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const code = btn.parentElement.querySelector('code').innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        const old = btn.textContent;
+        btn.textContent = '✓ copied';
+        btn.classList.add('done');
+        setTimeout(() => {
+          btn.textContent = old;
+          btn.classList.remove('done');
+        }, 1200);
+      });
+    });
+  });
+
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(item.getAttribute('href'));
+      if (!target) return;
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      item.classList.add('active');
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (window.innerWidth <= 900) {
+        document.querySelector('.sidebar').classList.remove('open');
+      }
+    });
+  });
+
+  const sections = document.querySelectorAll('.section');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        document.querySelectorAll('.nav-item').forEach(n => {
+          n.classList.toggle('active', n.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { rootMargin: '-40% 0px -55% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
