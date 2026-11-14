@@ -1,4 +1,4 @@
-<h1 align="center">⚡ Web Fuzzing Arsenal 2026</h1>
+<h1 align="center">⚡ Web Fuzzing Arsenal</h1>
 
 <p align="center">
   <strong>The complete professional toolkit for web content discovery, parameter mining, backup file hunting, and vulnerability scanning.</strong>
